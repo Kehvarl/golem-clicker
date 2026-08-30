@@ -130,7 +130,7 @@ class Game
         visible_values = @values.select { |k, v| v.show }
         visible_values.keys.each_with_index do |v, i|
             resource = visible_values[v]
-            @args.outputs.primitives << {x: 0, y: 700 - (i * 18)  ,text: "#{resource.label}: #{resource.value.floor}", r: 0, g: 0, b: 0}.label!
+            @args.outputs.primitives << {x: 10, y: 700 - (i * 18)  ,text: "#{resource.label}: #{resource.value.floor}", r: 0, g: 0, b: 0}.label!
         end
 
         render_logs
