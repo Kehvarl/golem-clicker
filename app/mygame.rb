@@ -43,11 +43,18 @@ class MyGame < Game
   def setup_basic
     add_message(:notes, "You gaze around the dusty workshop. Hardly ausipicious beginnings, but it's all you could afford. In one corner, a long dormant golem slumps against the wall. You will need to raise a great deal of power to make it useful.")
 
+    create_actor :basic
+    @actors[:basic].location =  [:basic]
+
     create_unlock :first_golem
   end
 
   def basic_entered
     add_message(:notes, "You returned to your first workshop.")
+  end
+
+  def basic_tick
+    add_message(:notes, "Tick...")
   end
 
   def first_golem_unlocked
