@@ -43,7 +43,7 @@ class MyGame < Game
   def setup_basic
     add_message(:notes, "You gaze around the dusty workshop. Hardly ausipicious beginnings, but it's all you could afford. In one corner, a long dormant golem slumps against the wall. You will need to raise a great deal of power to make it useful.")
 
-    create_actor :basic
+    create_actor :basic, 180
     @actors[:basic].location =  [:basic]
 
     create_unlock :first_golem
@@ -54,7 +54,11 @@ class MyGame < Game
   end
 
   def basic_tick
-    add_message(:notes, "Tick...")
+    @actors[:basic].ticks_remaining -= 1
+    if @actors[:basic].ticks_remaining == 0
+      @actors[:basic].ticks_remaining = @actors[:basic].ticks_total
+      add_message(:notes, "Tick...")
+    end
   end
 
   def first_golem_unlocked
