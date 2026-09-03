@@ -21,17 +21,10 @@ class MyGame < Game
       create_log :notes, 300, 10, 680, 270
       set_resource :mana, 0
 
-      create_button :raise_mana, 600, 300, "Raise Mana"
-      @buttons[:raise_mana].location =  [:basic]
-      highlight_button :raise_mana, 100
-      reveal_button :raise_mana
+      # What can be done anywhere?
+        # Travel to unlocked areas
+        # Command golems?
 
-      def raise_mana_clicked
-        if not button_highlight_full?(:raise_mana)
-          return
-        end
-        generate_resource(:mana, 1)
-      end
   end
 
 # ============================================================
@@ -39,6 +32,13 @@ class MyGame < Game
 # Description: Open air above the buried structure.
 #
 # Available Actions:
+#  Raise Mana:  Requires: ??
+#  Activate Golem: Requires: Golem, Mana
+#  Craft Golem: Requires: Materials
+#
+# Unlocks:
+#  First golem
+#  Travel to... ??
 # ============================================================
   def setup_basic
     add_message(:notes, "You gaze around the dusty workshop. Hardly ausipicious beginnings, but it's all you could afford. In one corner, a long dormant golem slumps against the wall. You will need to raise a great deal of power to make it useful.")
@@ -47,6 +47,19 @@ class MyGame < Game
     @actors[:basic].location =  [:basic]
 
     create_unlock :first_golem
+
+
+    create_button :raise_mana, 600, 300, "Raise Mana"
+    @buttons[:raise_mana].location =  [:basic]
+    highlight_button :raise_mana, 100
+    reveal_button :raise_mana
+  end
+
+  def raise_mana_clicked
+    if not button_highlight_full?(:raise_mana)
+      return
+    end
+    generate_resource(:mana, 1)
   end
 
   def basic_entered
