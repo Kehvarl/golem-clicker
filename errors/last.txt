@@ -1,0 +1,21 @@
+* EXCEPTION:
+* ERROR: :ticks_total method missing on ~NilClass~.
+
+#+begin_src ~NilClass#inspect~
+nil
+#+end_src ~NilClass#inspect~
+
+** Did you mean?
+Here's a list of methods that kind of look like :ticks_total.
+*** :tick
+
+The method named
+  :ticks_total
+doesn't exist on [NilClass, NilClassFalseClass].
+
+(suggestions above)
+** Backtrace:
+*** app/mygame.rb:99:in ritual_room_tick
+*** app/game.rb:91:in tick
+*** app/game.rb:86:in tick
+*** app/main.rb:14:in tick
