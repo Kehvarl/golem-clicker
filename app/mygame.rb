@@ -71,11 +71,13 @@ class MyGame < Game
 
     create_unlock :first_golem
 
-
-    create_button :raise_mana, 600, 300, "Raise Mana"
+    create_button :raise_mana, 600, 500, "Raise Mana"
     @buttons[:raise_mana].location =  [:ritual_room]
     highlight_button :raise_mana, 100
     reveal_button :raise_mana
+
+    create_button :activate_golem, 600, 400, "Activate Golem"
+    @buttons[:activate_golem].location =  [:ritual_room]
   end
 
   def raise_mana_clicked
@@ -83,6 +85,19 @@ class MyGame < Game
       return
     end
     generate_resource(:mana, 1)
+  end
+
+  def activate_golem_tick
+    mana = get_resource(:mana)
+    percent = [100, mana/50].min
+    highlight_button :activate_golem, percent
+  end
+
+  def activate_golem_clicked
+    if not button_highlight_full?(:activate_golem)
+      return
+    end
+    generate_resource(:golems, 1)
   end
 
   def ritual_room_first_entered
@@ -93,7 +108,7 @@ class MyGame < Game
     add_message(:notes, "You returned to the ritual space.")
   end
 
-  def ritual_room_tick
+  def activate_golem_tick
     @actors[:ritual_room].ticks_remaining -= 1
     if @actors[:ritual_room].ticks_remaining == 0
       @actors[:ritual_room].ticks_remaining = @actors[:workshop].ticks_total
@@ -102,5 +117,6 @@ class MyGame < Game
   end
 
   def first_golem_unlocked
+    reveal_button :activate_golem
   end
 end
