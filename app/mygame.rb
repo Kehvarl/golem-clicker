@@ -89,7 +89,7 @@ class MyGame < Game
 
   def activate_golem_tick
     mana = get_resource(:mana)
-    percent = [100, mana/50].min
+    percent = [100, (mana/50)*100].min
     highlight_button :activate_golem, percent
   end
 
