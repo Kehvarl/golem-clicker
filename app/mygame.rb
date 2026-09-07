@@ -97,7 +97,9 @@ class MyGame < Game
     if not button_highlight_full?(:activate_golem)
       return
     end
-    generate_resource(:golems, 1)
+    if use_resource(:mana, 50)
+      generate_resource(:golems, 1)
+    end
   end
 
   def ritual_room_first_entered
@@ -108,15 +110,18 @@ class MyGame < Game
     add_message(:notes, "You returned to the ritual space.")
   end
 
-  def activate_golem_tick
+  def raise_mana_tick
     @actors[:ritual_room].ticks_remaining -= 1
     if @actors[:ritual_room].ticks_remaining == 0
-      @actors[:ritual_room].ticks_remaining = @actors[:workshop].ticks_total
-      add_message(:notes, "Tick...")
+      @actors[:ritual_room].ticks_remaining = @actors[:ritual_room].ticks_total
+      if get_resource(:mana) >= 50
+        unlock(:first_golem)
+      end
     end
   end
 
   def first_golem_unlocked
+    add_message(:notes, "You have raised enough power to activate the old golem.")
     reveal_button :activate_golem
   end
 end
