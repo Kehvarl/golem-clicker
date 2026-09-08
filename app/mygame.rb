@@ -35,6 +35,7 @@ class MyGame < Game
 #   Ritual Room
 # ============================================================
   def setup_start
+    # You know what? Maybe instead of a notebox I need an RPG textbox thing...
     add_message(:notes, "Guess what?")
     add_message(:notes, "You're going to command golems!")
     add_message(:notes, "Click the button to see your sorcerer's lair!")
