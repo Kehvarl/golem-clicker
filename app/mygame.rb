@@ -1,6 +1,13 @@
 require 'app/game.rb'
 require 'app/proc_gen.rb'
 
+# Some controls that might be nice
+  # A text box with a timed message Queueue
+  # Fade-in/Fade-out Buttons
+  # Agent Tick and Trigger
+  # Location-specific Resources
+  # Unique Entities (Golems) 
+
 class MyGame < Game
   def initialize args
     super
