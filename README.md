@@ -32,3 +32,10 @@ What is the progression?
 - Travel
  - Workshop
  -
+
+
+
+ What Areas might we have
+ What unlocks access to the area
+ What do we have access to in any given Area
+ What happens when we’re there or not there
