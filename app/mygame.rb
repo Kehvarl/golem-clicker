@@ -6,7 +6,8 @@ require 'app/proc_gen.rb'
   # Fade-in/Fade-out Buttons
   # Agent Tick and Trigger
   # Location-specific Resources
-  # Unique Entities (Golems) 
+  # Unique Entities (Golems)
+  #
 
 class MyGame < Game
   def initialize args
@@ -74,7 +75,7 @@ class MyGame < Game
   #   ??
   # ============================================================
   def setup_ritual_room
-    create_actor :ritual_room, 180
+    create_actor :ritual_room, ticks_total: 180
     @actors[:ritual_room].location =  [:ritual_room]
 
     create_unlock :first_golem

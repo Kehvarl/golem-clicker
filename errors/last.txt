@@ -1,0 +1,4 @@
+* EXCEPTION: 'tick': wrong number of arguments (0 for 1)
+** Backtrace:
+*** app/main.rb:9:in tick
+*** app/main.rb:14:in tick
