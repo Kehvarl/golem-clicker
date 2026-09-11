@@ -32,10 +32,12 @@ class Game
         @visited_locations = {}
         @unlocks = {}
         @buttons = {}
+        @labels = {}
         @actors = {}
         @values = {}
         @logs = {}
         @default_button_color = {r:128,g:128,b:128}
+        @default_label_color = {r:255,g:255,b:255}
         @default_border_color = {r:64,g:64,b:64}
         @default_highlight_color = {r:196,g:196,b:196}
         @default_text_color = {r:0,g:0,b:0}
@@ -89,6 +91,17 @@ class Game
                     actor.on_tick_proc.call(self, actor)
                 elsif actor.on_tick && respond_to?(actor.on_tick)
                     self.send(actor.on_tick)
+                elsif actor.on_trigger_proc && actor.ticks_remaining > 0
+                    actor.ticks_remaining -=1
+                    if actor.ticks_remaining <= 0
+                        actor.on_trigger_proc.call(self, actor)
+                    end
+                elsif actor.on_trigger && respond_to?(actor.on_trigger) && actor.ticks_remaining > 0
+                    #auto tick and trigger at 0
+                    actor.ticks_remaining -=1
+                    if actor.ticks_remaining <= 0
+                        self.send(actor.on_trigger)
+                    end
                 end
             end
         end
@@ -103,6 +116,14 @@ class Game
                 calculate_highlight(button)
                 if button.highlight
                     button.primitives[1].w = button.primitives[0].w * (button.highlight_percent/100.0).clamp(0.0, 1.0)
+                end
+            end
+        end
+
+        @labels.each do |_, label|
+            if button_can_tick?(label)
+                if label.on_tick && self.respond_to?(label.on_tick)
+                    self.send(label.on_tick)
                 end
             end
         end
@@ -126,11 +147,18 @@ class Game
                 end
             end
         end
+        @labels.each do |_, label|
+            if label.show
+                if location_match?(label.location)
+                    @args.outputs.primitives << label.primitives
+                end
+            end
+        end
 
         visible_values = @values.select { |k, v| v.show }
         visible_values.keys.each_with_index do |v, i|
             resource = visible_values[v]
-            @args.outputs.primitives << {x: 10, y: 700 - (i * 18)  ,text: "#{resource.label}: #{resource.value.floor}", r: 0, g: 0, b: 0}.label!
+            @args.outputs.primitives << {x: 0, y: 700 - (i * 18)  ,text: "#{resource.label}: #{resource.value.floor}", r: 0, g: 0, b: 0}.label!
         end
 
         render_logs
@@ -218,6 +246,53 @@ class Game
             end
         end
     end
+
+  # == Labels ==
+
+  # ------------------------------------------------------------
+  # create_label
+  # Registers a label
+  #
+  # Hidden by default.
+  # Optional location limits render/tick scope.
+  # Optional on_tick_proc overrides implicit <id>_tick dispatch with a lambda.
+  #
+  # Implicit callbacks:
+  #   <id>_tick
+  # ------------------------------------------------------------
+      def create_label id, x, y, text, w=nil, h=nil, location=nil, always_tick=nil
+          if w == nil or h == nil
+              w, h = @args.gtk.calcstringbox text
+              w += 20
+              h += 20
+          end
+          @labels[id] = {
+              show: true,
+              text: text,
+              location: location,
+              always_tick: always_tick,
+              on_tick: "#{id}_tick".to_sym,
+              highlight_percent: 0,
+              highlight: false,
+              primitives: [
+                  {x:x, y:y, w:w, h:h, **@default_label_color}.solid!,
+                  {x:x, y:y, w:0, h:h, **@default_highlight_color}.solid!,
+                  {x:x, y:y, w:w, h:h, **@default_border_color}.border!,
+                  {x: x + 10, y:y + 30 ,text:text, **@default_text_color}.label!,
+              ]}
+      end
+
+    # ------------------------------------------------------------
+    # set_label_text
+    # Change the text of a label
+    #
+    # ------------------------------------------------------------
+      def set_label_text(id, text)
+          label = @labels[id]
+
+          label.text = text
+          label.primitives[3].text = text
+      end
 
 # == Buttons ==
 
@@ -356,7 +431,7 @@ class Game
 # Implicit callback:
 #   <id>_tick
 # ------------------------------------------------------------
-    def create_actor id, ticks_total=60, location=nil, always_tick=nil
+    def create_actor id, ticks_total: 60, location: nil, always_tick: nil
         @actors[id] = {
                     location: location,
                     always_tick: always_tick,
@@ -364,7 +439,17 @@ class Game
                     ticks_remaining: ticks_total,
                     on_tick: "#{id}_tick".to_sym,
                     on_tick_proc: nil,
+                    on_trigger: "#{id}_trigger".to_sym,
+                    on_trigger_proc: nil,
             }
+    end
+
+    def restart_actor id, ticks_total=nil
+        a = @actors[id]
+        if ticks_total
+            a.ticks_total = ticks_total
+        end
+        a.ticks_remaining = a.ticks_total
     end
 
 # Returns true if the actor should tick this frame
@@ -380,7 +465,7 @@ class Game
 #
 # Resources track value, label, and visibility.
 # ------------------------------------------------------------
-    def ensure_resource(resource, show = true)
+    def ensure_resource(resource, show: true)
         if !@values.key?(resource)
             @values[resource] = {value: 0, label: resource.to_s.capitalize, show: show}
         end
@@ -390,18 +475,26 @@ class Game
 # generate_resource
 # Increases a resource value.
 # ------------------------------------------------------------
-    def generate_resource(resource, qty=1, show=true)
-        ensure_resource(resource, show)
-        @values[resource].value+= qty
+    def generate_resource(resource, qty=1, show: true, limit: nil)
+        ensure_resource(resource, show: show)
+        if limit and (@values[resource].value + qty) >= limit
+            @values[resource].value = limit
+        else
+            @values[resource].value+= qty
+        end
     end
 
 # ------------------------------------------------------------
 # set_resource
 # Sets a resource to an explicit value.
 # ------------------------------------------------------------
-    def set_resource(resource, qty, show=true)
-        ensure_resource(resource, show)
-        @values[resource].value = qty
+    def set_resource(resource, qty, show: true, limit: nil)
+        ensure_resource(resource, show: show)
+        if limit and limit <= qty
+            @values[resource].value = limit
+        else
+            @values[resource].value = qty
+        end
     end
 
 # ------------------------------------------------------------
@@ -449,12 +542,20 @@ class Game
         @unlocks[key] = false
     end
 
+    def create_trigger(key)
+      create_unlock(key)
+    end
+
 # ------------------------------------------------------------
 # unlocked?
 # Returns true if the unlock has been activated.
 # ------------------------------------------------------------
     def unlocked?(key)
         @unlocks[key] == true
+    end
+
+    def triggered?(key)
+      unlocked?(key)
     end
 
 # ------------------------------------------------------------
@@ -470,11 +571,17 @@ class Game
         if not unlocked?(key)
             @unlocks[key] = true
             if self.respond_to? "#{key}_unlocked".to_sym
-                 self.send("#{key}_unlocked".to_sym)
+                self.send("#{key}_unlocked".to_sym)
+            elsif self.respond_to? "#{key}_triggered".to_sym
+                self.send("#{key}_triggered".to_sym)
             end
             return true
         end
         return false
+    end
+
+    def trigger(key)
+      unlock(key)
     end
 
 # == Logs ==
