@@ -7,7 +7,12 @@ require 'app/proc_gen.rb'
   # Agent Tick and Trigger
   # Location-specific Resources
   # Unique Entities (Golems)
-  #
+    # A golem needs:
+    # Type
+    # Equipment
+    # Current Task
+
+  # Ugh, have to be careful turning this into a management game again.
 
 class MyGame < Game
   def initialize args
